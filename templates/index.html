@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Prediction System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        .form-section, .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-section h2, .results-section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 400px;
+        }
+
+        .prediction-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            transform: scale(0);
+            transition: all 0.5s ease;
+        }
+
+        .prediction-card.show {
+            transform: scale(1);
+        }
+
+        .prediction-score {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .prediction-category {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .recommendations {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            text-align: left;
+            width: 100%;
+        }
+
+        .recommendations h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 0.5rem 0;
+            color: #555;
+            border-left: 3px solid #667eea;
+            padding-left: 1rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        .placeholder {
+            color: #999;
+            font-style: italic;
+        }
+
+        .feature-importance {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .feature-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .feature-name {
+            min-width: 150px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .feature-progress {
+            flex: 1;
+            height: 10px;
+            background: #e1e5e9;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .feature-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+
+        .feature-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-graduation-cap"></i> Student Performance Predictor</h1>
+            <p>Predict academic performance using machine learning</p>
+        </header>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2><i class="fas fa-user-edit"></i> Student Information</h2>
+                <form id="studentForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="study_hours">
+                                Study Hours/Week 
+                                <span class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltiptext">Average hours spent studying per week</span>
+                                </span>
+                            </label>
+                            <input type="number" id="study_hours" name="study_hours" min="0" max="40" step="0.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="attendance">
+                                Attendance Rate (%) 
+                                <span class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltiptext">Percentage of classes attended</span>
+                                </span>
+                            </label>
+                            <input type="number" id="attendance" name="attendance" min="0" max="100" step="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="previous_grade">Previous Grade (%)</label>
+                            <input type="number" id="previous_grade" name="previous_grade" min="0" max="100" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sleep_hours">Sleep Hours/Night</label>
+                            <input type="number" id="sleep_hours" name="sleep_hours" min="4" max="12" step="0.5" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="family_income">Family Income Level</label>
+                            <select id="family_income" name="family_income" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="parent_education">Parent Education</label>
+                            <select id="parent_education" name="parent_education" required>
+                                <option value="">Select...</option>
+                                <option value="High School">High School</option>
+                                <option value="Bachelor">Bachelor's Degree</option>
+                                <option value="Master">Master's Degree</option>
+                                <option value="PhD">PhD</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="extracurricular">Extracurricular Activities</label>
+                            <input type="number" id="extracurricular" name="extracurricular" min="0" max="5" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="stress_level">Stress Level (1-10)</label>
+                            <input type="number" id="stress_level" name="stress_level" min="1" max="10" step="1" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="motivation_level">Motivation Level (1-10)</label>
+                            <input type="number" id="motivation_level" name="motivation_level" min="1" max="10" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="internet_access">Internet Access</label>
+                            <select id="internet_access" name="internet_access" required>
+                                <option value="">Select...</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tutoring">Receives Tutoring</label>
+                        <select id="tutoring" name="tutoring" required>
+                            <option value="">Select...</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn">
+                        <i class="fas fa-magic"></i> Predict Performance
+                    </button>
+                </form>
+            </div>
+
+            <div class="results-section">
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner"></i> Analyzing data...
+                </div>
+                
+                <div id="placeholder" class="placeholder">
+                    <i class="fas fa-chart-line" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+                    <p style="font-size: 1.2rem;">Fill out the form to see the prediction</p>
+                </div>
+
+                <div id="results" style="display: none; width: 100%;">
+                    <div class="prediction-card" id="predictionCard">
+                        <div class="prediction-score" id="predictionScore">--</div>
+                        <div class="prediction-category" id="predictionCategory">--</div>
+                        <div style="font-size: 1rem; opacity: 0.9;">Predicted Final Grade</div>
+                    </div>
+
+                    <div class="recommendations" id="recommendations">
+                        <h3><i class="fas fa-lightbulb"></i> Recommendations</h3>
+                        <ul id="recommendationsList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-importance" id="featureImportance" style="display: none;">
+            <h3><i class="fas fa-chart-bar"></i> Key Factors Affecting Performance</h3>
+            <div id="featureChart"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('studentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Hide loading
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Show results
+                    document.getElementById('results').style.display = 'block';
+                    
+                    // Update prediction card
+                    const predictionCard = document.getElementById('predictionCard');
+                    predictionCard.style.background = `linear-gradient(135deg, ${result.color}, ${result.color}aa)`;
+                    
+                    document.getElementById('predictionScore').textContent = result.prediction + '%';
+                    document.getElementById('predictionCategory').textContent = result.category;
+                    
+                    // Show card with animation
+                    setTimeout(() => {
+                        predictionCard.classList.add('show');
+                    }, 100);
+                    
+                    // Update recommendations
+                    const recommendationsList = document.getElementById('recommendationsList');
+                    recommendationsList.innerHTML = '';
+                    result.recommendations.forEach(rec => {
+                        const li = document.createElement('li');
+                        li.textContent = rec;
+                        recommendationsList.appendChild(li);
+                    });
+                    
+                    // Load feature importance
+                    loadFeatureImportance();
+                    
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('placeholder').style.display = 'block';
+                alert('An error occurred while making the prediction. Please try again.');
+            }
+        });
+
+        async function loadFeatureImportance() {
+            try {
+                const response = await fetch('/analytics');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const featureChart = document.getElementById('featureChart');
+                    featureChart.innerHTML = '';
+                    
+                    // Sort features by importance
+                    const features = Object.entries(result.feature_importance)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 6); // Top 6 features
+                    
+                    const maxImportance = Math.max(...features.map(([,imp]) => imp));
+                    
+                    features.forEach(([feature, importance]) => {
+                        const featureBar = document.createElement('div');
+                        featureBar.className = 'feature-bar';
+                        
+                        const percentage = (importance / maxImportance) * 100;
+                        
+                        featureBar.innerHTML = `
+                            <div class="feature-name">${feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                            <div class="feature-progress">
+                                <div class="feature-fill" style="width: ${percentage}%"></div>
+                            </div>
+                            <div class="feature-value">${(importance * 100).toFixed(1)}%</div>
+                        `;
+                        
+                        featureChart.appendChild(featureBar);
+                    });
+                    
+                    document.getElementById('featureImportance').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading feature importance:', error);
+            }
+        }
+    </script>
+</body>
+</html>
